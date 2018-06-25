@@ -1,7 +1,167 @@
 require('dotenv').config()
 const express = require('express')
 const app = express()
+const port = process.env.PORT || 5000
+const bodyParser = require('body-parser')
+const {
+  addArt,
+  getAPainting,
+  updatePainting,
+  deletePainting
+} = require('./dal')
+const NodeHTTPError = require('node-http-error')
+const { propOr, not, isEmpty, join, compose } = require('ramda')
+//pathOr,
+//const pkGen = require('./lib/pkGen')
+const requiredFieldChecker = require('./lib/required-field-checker')
+// {   propEq, pathOr }
+//const createMissingFieldsMsg = require('./lib/create-missing-fields-msg')
+
+app.use(bodyParser.json())
 
 app.get('/', function(req, res, next) {
   res.send('Welcome to the Art API. Manage all the paintings.')
 })
+
+/*
+POST /paintings
+
+
+Use the name field in the creation of the _id value. DO NOT ALLOW the articles "a" or "the" in the beginning of
+the name for the primary key value.
+
+DO NOT ALLOW the articles "a" or "the" in the beginning of the name for the primary key value. In the example
+below the name of the painting to create is "The Persistence of Memory". When created the painting should have a primary
+key value of _id: "painting_persistence_of_memory"
+
+}*/
+
+//POST - Create Painting
+app.post('/paintings', (req, res, next) => {
+  const newArt = propOr({}, 'body', req)
+
+  if (isEmpty(newArt)) {
+    next(new NodeHTTPError(400, 'Painting body is empty!'))
+  }
+
+  const missingFields = requiredFieldChecker(
+    ['name', 'movement', 'artist', 'yearCreated', 'museum'],
+    newArt
+  )
+
+  const sendMissingFieldError = compose(
+    not,
+    isEmpty
+  )(missingFields)
+
+  if (sendMissingFieldError) {
+    next(
+      new NodeHTTPError(
+        400,
+        `You didn't pass all the required fields: ${join(', ', missingFields)}`
+      )
+    )
+  }
+
+  addArt(newArt, function(err, result) {
+    if (err) {
+      next(new NodeHTTPError(err.status, err.message, err))
+    }
+    res.status(201).send(result)
+  })
+})
+
+//GET - Retrieve Painting
+app.get('/paintings/:paintingID', function(req, res, next) {
+  const paintingID = req.params.paintingID
+  getAPainting(paintingID, function(err, painting) {
+    if (err) {
+      next(new NodeHTTPError(err.status, err.message, err))
+      return
+    }
+    res.status(200).send(painting)
+  })
+})
+/*
+ The museum key value must contain an object that includes the museum's name and location. Not providing
+the most recent _rev value will cause an 409 - conflict error to occur.
+
+*/
+//PUT - Update Painting
+app.put('/paintings/:paintingID', function(req, res, next) {
+  const updatedPainting = propOr({}, 'body', req)
+  const paintingID = req.params.paintingID
+  if (isEmpty(updatedPainting)) {
+    next(new NodeHTTPError(400, `Add Painting to request body!`))
+    return
+  }
+  const missingFields = requiredFieldChecker(
+    [
+      '_id',
+      '_rev',
+      'name',
+      'movement',
+      'artist',
+      'yearCreated',
+      'type',
+      'museum'
+    ],
+    updatedPainting
+  )
+
+  const sendMissingFieldError = compose(
+    not,
+    isEmpty
+  )(missingFields)
+  if (sendMissingFieldError) {
+    next(
+      new NodeHTTPError(
+        400,
+        `You didn't pass all the required fields: ${join(', ', missingFields)}`
+      )
+    )
+  }
+  updatePainting(updatedPainting, function(err, painting) {
+    if (err) {
+      next(new NodeHTTPError(err.status, err.message, err))
+      return
+    }
+    res.status(200).send(painting)
+  })
+})
+
+//Delete Painting
+/*
+Delete a painting
+
+DELETE /paintings/:id
+
+Deletes a specific painting as identified by the :id path parameter.
+
+Sample Request
+
+DELETE /paintings/painting_bal_du_moulin_de_la_galette
+Sample Response
+
+{
+    "ok": true,
+    "id": "painting_bal_du_moulin_de_la_galette",
+    "rev": "3-fdd7fcbc62477372240862772d91c88f"
+}
+*/
+app.delete('/paintings/:paintingID', function(req, res, next) {
+  const paintingID = req.params.paintingID
+  deletePainting(paintingID, function(err, painting) {
+    if (err) {
+      next(new NodeHTTPError(err.status, err.message, err))
+      return
+    }
+    res.status(200).send(painting)
+  })
+})
+
+/*
+
+*/
+
+app.listen(port, () => console.log(`Lauren's Art API Exam!`, port))
