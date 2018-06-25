@@ -16,6 +16,16 @@ const addArt = (art, callback) => {
   })
   db.put(modifiedArt, callback)
 }
+/*
+
+const addArt = (art, callback) => {
+  const modifiedArt = merge(art, {
+    type: 'painting',
+    _id: pkGen('painting_', '-', prop('name', art))
+  })
+  db.put(modifiedArt, callback)
+}
+*/
 
 const getAPainting = (id, callback) => db.get(id, callback)
 const updatePainting = (painting, callback) => db.put(painting, callback)
@@ -40,6 +50,52 @@ function getAllPaintings(limit, paginate, callback) {
 /*
 
 
+const getAllPaintings = callback =>
+  listAllDocs(
+    { include_docs: true, startkey: 'painting_', endkey: 'painting_\ufff0' },
+    callback
+  )
+*/
+/*
+
+
+
+const deleteBoard = (id, callback) => {
+  db.get(id, function(err, board) {
+    db.remove(board, callback)
+  })
+}
+//this function is getting the required rev and id by providing only the sku
+const getBoard = (id, callback) => db.get(id, callback)
+
+const getAllBoards = callback =>
+  listAllDocs(
+    { include_docs: true, startkey: 'board_', endkey: 'board_\ufff0' },
+    callback
+  )
+
+
+const getLimitBoards = callback =>
+  limitDocs(
+    { include_docs: true, startkey: 'board_', endkey: '?limit=${Number}' },
+    callback
+  )
+
+const limitBoards = limit =>
+  db
+    .allDocs({ include_docs: true, limit })
+    .then(response => map(prop('doc'), response.rows))
+
+
+const listBoards = (limit, paginate) =>
+  //paginate === null or boards_14232
+  db
+    .allDocs(
+      paginate
+        ? { include_docs: true, limit, start_key: `${paginate}${'\ufff0'}` }
+        : { include_docs: true, limit }
+    )
+    .then(response => map(prop('doc'), response.rows))
 */
 const listAllDocs = (id, callback) =>
   db.allDocs(id, function(err, paintings) {

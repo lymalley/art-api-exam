@@ -145,7 +145,7 @@ app.delete('/paintings/:paintingID', function(req, res, next) {
 //List Paintings with Pagination
 
 app.get('/paintings', function(req, res, next) {
-  const limit = Number(pathOr(4, ['query', 'limit'], req))
+  const limit = Number(pathOr(4, ['query', 'limit', 'filter'], req))
   const paginate = pathOr(null, ['query', 'startkey'], req)
   getAllPaintings(limit, paginate, function(err, paintings) {
     if (err) {
@@ -157,6 +157,109 @@ app.get('/paintings', function(req, res, next) {
 })
 
 /*
+Step 5 - Add a filter
+Create a filter query parameter on the GET /paintings endpoint to provide flexible search capability.
+
+Provide the ability to filter paintings by name, movement, artist and year created.
+
+The filter query parameter may be used in conjunction with limit but not with lastItem.
+
+Paintings may not be filtered and paginated at the same time.
+
+Consider using functional techniques within the dal to filter the documents after they are retrieved from the database.
+
+Example
+
+Filter by movement and limit to five paintings
+
+GET /paintings?filter=movement:surrealism&limit=5
+Sample Results
+
+[
+  {
+      "_id": "painting_guernica",
+      "_rev": "1-ccd60fb0ca42d879d048f083b95cfdcb",
+      "name": "Guernica",
+      "type": "painting",
+      "movement": "surrealism",
+      "artist": "Pablo Picasso",
+      "yearCreated": 1937,
+      "museum": {
+          "name": "Museo Nacional Centro de Arte Reina Sofía",
+          "location": "Madrid"
+      }
+  }
+]
+*/
+
+/*
+Step 6 - Add filter comparison operators
+Enhance the existing filter query parameter on the GET /art/paintings endpoint by adding eq (equals), gt (greater than), gte (greater than equal to) ,lt (less than), lte (less than equal to) comparison operators within your filter.
+
+The filter query parameter may be used in conjunction with limit but not with lastItem.
+
+Paintings may not be filtered and paginated at the same time.
+
+Examples
+
+Filter paintings created after 1930. Limit results to 5 paintings
+
+GET /paintings?filter=yearCreated:gt:1930&limit=5
+Sample Results
+
+[
+  {
+      "_id": "painting_guernica",
+      "_rev": "1-ccd60fb0ca42d879d048f083b95cfdcb",
+      "name": "Guernica",
+      "type": "painting",
+      "movement": "surrealism",
+      "artist": "Pablo Picasso",
+      "yearCreated": 1937,
+      "museum": {
+          "name": "Museo Nacional Centro de Arte Reina Sofía",
+          "location": "Madrid"
+      }
+  }
+]
+Filter by artists greater or equal to Pablo Picasso.
+
+GET /paintings?filter=artist:gte:Pablo Picasso
+Sample Results
+
+[
+  {
+      "_id": "painting_guernica",
+      "_rev": "1-ccd60fb0ca42d879d048f083b95cfdcb",
+      "name": "Guernica",
+      "type": "painting",
+      "movement": "surrealism",
+      "artist": "Pablo Picasso",
+      "yearCreated": 1937,
+      "museum": {
+          "name": "Museo Nacional Centro de Arte Reina Sofía",
+          "location": "Madrid"
+      }
+  },
+  {
+    "_id": "painting_bal_du_moulin_de_la_galette",
+    "name": "Bal du moulin de la Galette",
+    "type": "painting",
+    "movement": "impressionism",
+    "artist": "Pierre-Auguste Renoires",
+    "yearCreated": 1876,
+    "museum": {"name": "Musée d’Orsay", "location": "Paris"}
+  },
+  {
+    "_id": "painting_starry_night",
+    "name": "The Starry Night",
+    "type": "painting",
+    "movement": "post-impressionism",
+    "artist": "Vincent van Gogh",
+    "yearCreated": 1889,
+    "museum": {"name": "Museum of Modern Art", "location": "New York"}
+  }
+]
 */
 
 app.use((err, req, res, next) => {
