@@ -7,14 +7,14 @@ const {
   addArt,
   getAPainting,
   updatePainting,
-  deletePainting
+  deletePainting,
+  getAllPaintings
 } = require('./dal')
 const NodeHTTPError = require('node-http-error')
-const { propOr, not, isEmpty, join, compose } = require('ramda')
-//pathOr,
+const { propOr, not, isEmpty, join, compose, pathOr } = require('ramda')
 //const pkGen = require('./lib/pkGen')
 const requiredFieldChecker = require('./lib/required-field-checker')
-// {   propEq, pathOr }
+// {   propEq }
 //const createMissingFieldsMsg = require('./lib/create-missing-fields-msg')
 
 app.use(bodyParser.json())
@@ -131,24 +131,7 @@ app.put('/paintings/:paintingID', function(req, res, next) {
 })
 
 //Delete Painting
-/*
-Delete a painting
 
-DELETE /paintings/:id
-
-Deletes a specific painting as identified by the :id path parameter.
-
-Sample Request
-
-DELETE /paintings/painting_bal_du_moulin_de_la_galette
-Sample Response
-
-{
-    "ok": true,
-    "id": "painting_bal_du_moulin_de_la_galette",
-    "rev": "3-fdd7fcbc62477372240862772d91c88f"
-}
-*/
 app.delete('/paintings/:paintingID', function(req, res, next) {
   const paintingID = req.params.paintingID
   deletePainting(paintingID, function(err, painting) {
@@ -159,9 +142,32 @@ app.delete('/paintings/:paintingID', function(req, res, next) {
     res.status(200).send(painting)
   })
 })
+//List Paintings with Pagination
+
+app.get('/paintings', function(req, res, next) {
+  const limit = Number(pathOr(4, ['query', 'limit'], req))
+  const paginate = pathOr(null, ['query', 'startkey'], req)
+  getAllPaintings(limit, paginate, function(err, paintings) {
+    if (err) {
+      next(new NodeHTTPError(err.status, err.message, err))
+      return
+    }
+    res.status(200).send(paintings)
+  })
+})
 
 /*
-
 */
+
+app.use((err, req, res, next) => {
+  console.log(
+    `UH OH! \n\nMETHOD ${req.method} \nPATH ${req.path}\n${JSON.stringify(
+      err,
+      null,
+      2
+    )}`
+  )
+  res.status(err.status || 500).send(err)
+})
 
 app.listen(port, () => console.log(`Lauren's Art API Exam!`, port))
