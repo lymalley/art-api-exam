@@ -18,6 +18,7 @@ Next, you will want to clone the forked repo locally, move into the repo and ins
 $: git clone https://github.com/lymalley/art-api-exam.git
 $: cd art-api-exam
 $: npm install
+$: atom .
 ```
 
 ## Establishing Environment Variables
@@ -51,24 +52,23 @@ Now that you have completed all the necessary steps, you can now give the comman
 $: npm start
 ```
 
-## Endpoints
+## ENDPOINTS
 
-###Create a painting
+POST,
+
+## Create A Painting
 
 POST /paintings
+
 Add a painting to the collection by providing a new painting resource in the request body.
 
-Creates a painting. The request body must contain a JSON object that represents the painting being created. The request body must include the name, movement, artist, yearCreated, and museum fields.
+The painting being created must have a request body that contains a JSON object that includes the name, movement, artist, yearCreated, and museum fields.
 
-Use the name field in the creation of the \_id value. DO NOT ALLOW the articles "a" or "the" in the beginning of the name for the primary key value.
+Use the name field in the creation of the \_id value.
 
-DO NOT ALLOW the articles "a" or "the" in the beginning of the name for the primary key value. In the example below the name of the painting to create is "The Persistence of Memory". When created the painting should have a primary key value of \_id: "painting_persistence_of_memory"
+Example POST Body
 
-Sample Request
-
-POST /paintings
-Sample Request Body JSON Data
-
+```
 {
 "name": "The Persistence of Memory",
 "movement": "surrealism",
@@ -76,24 +76,33 @@ Sample Request Body JSON Data
 "yearCreated": 1931,
 "museum": {"name": "Musuem of Modern Art", "location": "New York"}
 }
-Sample Response
+```
 
+Example Response:
+
+```
 {
 "ok": true,
 "id": "painting_persistence_of_memory",
 "rev": "1-c617189487fbe325d01cb7fc74acf45b"
 }
+```
 
-###Retrieve a painting
+## Retrieve A Painting
 
 GET /paintings/:paintingID
-Retrieve a single painting, itendified by the :paintingID parameter, from the collection of paintings
 
-Sample Request
+Retrieve a single painting, identified by the :paintingID parameter, from the collection of paintings
 
-GET /paintings/painting_bal_du_moulin_de_la_galette
-Sample Response
+Example Request
 
+```
+/paintings/painting_bal_du_moulin_de_la_galette
+```
+
+Example Response
+
+```
 {
 "\_id": "painting_bal_du_moulin_de_la_galette",
 "\_rev": "1-c617189487fbe325d01cb7fc74acf45b",
@@ -104,21 +113,25 @@ Sample Response
 "yearCreated": 1876,
 "museum": {"name": "Musée d’Orsay", "location": "Paris"}
 }
+```
 
-##Update a painting
+## Update A Painting
 
-PUT /paintings/:id
-Update the entire painting resource.
+PUT /paintings/:paintingID
+
+Update the entire painting resource identified by the specific paint. The request body must include the \_id, \_rev, name, movement, artist, yearCreated, and museum fields.
 
 409 - conflict error for not using the most up to date rev
 
-Updates a specific painting as identified by the :id path parameter. The request body must contain a JSON object that represents the painting being updated. The request body must include the \_id, \_rev, name, movement, artist, yearCreated, and museum fields. The museum key value must contain an object that includes the museum's name and location. Not providing the most recent \_rev value will cause an 409 - conflict error to occur.
+Example Request
 
-Sample Request
+```
+/paintings/painting_bal_du_moulin_de_la_galette
+```
 
-PUT /paintings/painting_bal_du_moulin_de_la_galette
-Sample Request Body JSON Data
+Example Request Body
 
+```
 {
 "\_id": "painting_bal_du_moulin_de_la_galette",
 "\_rev": "1-c617189487fbe325d01cb7fc74acf45b",
@@ -129,99 +142,39 @@ Sample Request Body JSON Data
 "yearCreated": 1877,
 "museum": {"name": "Musée d’Orsay", "location": "Paris"}
 }
-Sample Response
+```
 
+Example Response
+
+```
 {
 "ok": true,
 "id": "painting_bal_du_moulin_de_la_galette",
 "rev": "2-7e9b8cac710e70bfe0bef2de7bb3cfdb"
 }
+```
 
 ##Delete a painting
-
 DELETE /paintings/:paintingID
 Delete a specific painting that is identified by the :paintingID parameter.
 
-Sample Request
+Example Request
 
+```
 DELETE /paintings/painting_bal_du_moulin_de_la_galette
-Sample Response
+```
 
+Example Response
+
+```
 {
 "ok": true,
 "id": "painting_bal_du_moulin_de_la_galette",
 "rev": "3-fdd7fcbc62477372240862772d91c88f"
 }
+```
 
 ##List paintings with pagination
-
 GET /paintings
 
-Returns a collection of paintings sorted by name. An optional limit query parameter provides a limit on the number of objects returned. Default limit value is 5. When used in conjunction with limit, an optional lastItem query parameter provides the ability to return the next page of paintings.
-
-Examples
-
-GET /paintings?limit=2 returns an JSON array of 2 paintings.
-
-Sample Response
-
-[
-{
-"_id": "painting_bal_du_moulin_de_la_galette",
-"_rev": "5-2bac91fbd33b6612e4ea7da0552c91ca",
-"name": "Bal du moulin de la Galette",
-"type": "painting",
-"movement": "impressionism",
-"artist": "Pierre-Auguste Renoires",
-"yearCreated": 1876,
-"museum": {
-"name": "Musée d’Orsay",
-"location": "Paris"
-}
-},
-{
-"_id": "painting_guernica",
-"_rev": "5-a8b803395d7cb6154f63c627571a5575",
-"name": "Guernica",
-"type": "painting",
-"movement": "surrealism",
-"artist": "Pablo Picasso",
-"yearCreated": 1937,
-"museum": {
-"name": "Museo Nacional Centro de Arte Reina Sofía",
-"location": "Madrid"
-}
-}
-]
-GET /paintings?limit=2&lastItem=painting_guernica to get the next page of results:
-
-Sample Response
-
-[
-{
-"_id": "painting_last_supper",
-"_rev": "3-418af3c02f63725a2bd7941afe0cc3c6",
-"name": "The Last Supper",
-"type": "painting",
-"movement": "Renaissance",
-"artist": "Leonardo da Vinci",
-"yearCreated": 1495,
-"museum": {
-"name": "Santa Maria delle Grazie",
-"location": "Milan"
-}
-},
-{
-"_id": "painting_starry_night",
-"_rev": "3-5e8b713e1644779ebbb29c539166bd81",
-"name": "The Starry Night",
-"type": "painting",
-"movement": "post-impressionism",
-"artist": "Vincent van Gogh",
-"yearCreated": 1889,
-"museum": {
-"name": "Museum of Modern Art",
-"location": "New York"
-}
-}
-]
+Returns a collection of paintings sorted by name. An optional limit query parameter provides a limit on the number of objects returned.
